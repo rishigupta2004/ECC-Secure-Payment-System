@@ -1,0 +1,131 @@
+import streamlit as st
+from streamlit_option_menu import option_menu
+import streamlit_shadcn_ui as ui
+import requests
+import pygwalker as pyg
+
+# Initialize Streamlit app
+st.set_page_config(page_title="ECC Secure Payment System", page_icon="🔒", layout="wide", initial_sidebar_state="expanded")
+
+# Set up the dropdown menu in the sidebar
+with st.sidebar:
+    selected = option_menu(
+        "Navigation",
+        ["Home", "Login", "Transaction", "Transaction History"],
+        icons=["house", "key", "cash-coin", "clock-history"],
+        menu_icon="list",
+        default_index=0,
+        styles={
+            "container": {"padding": "0!important", "background-color": "#333"},
+            "icon": {"color": "white"},
+            "nav-link": {"font-size": "16px", "text-align": "left", "margin": "0px", "--hover-color": "#444"},
+            "nav-link-selected": {"background-color": "#444"},
+        }
+    )
+
+# Define a function to display the logo
+def display_logo():
+    st.markdown(
+        """
+        <style>
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-container img {
+            width: 150px;
+            height: auto;
+        }
+        </style>
+        <div class="logo-container">
+            <img src="https://your-logo-url.com/logo.png" alt="Logo">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Display the logo at the top of each page
+display_logo()
+
+# Define content for each page
+if selected == "Home":
+    st.title("ECC Secure Payment System")
+    st.subheader("Welcome to the ECC Secure Payment System")
+    st.write("""
+        This project utilizes Elliptic Curve Cryptography (ECC) to enable secure payments.
+        ECC is a public-key encryption technique based on elliptic curve theory that can create faster, smaller,
+        and more efficient cryptographic keys. Here’s how it works:
+        
+        1. **Key Generation:** Each user generates a public and private key pair.
+        2. **Transaction Signing:** Transactions are signed using the sender's private key.
+        3. **Signature Verification:** The transaction is verified using the sender's public key.
+        
+        This ensures that only the owner of the private key can initiate a transaction, providing a high level of security.
+    """)
+    st.write("""
+        ## How to Use
+        1. Navigate to the Login page to register or log in.
+        2. Use your keys to initiate and track transactions.
+        3. View your transaction history.
+    """)
+elif selected == "Login":
+    st.title("Login")
+    st.subheader("First-time users will receive their public and private keys upon login.")
+    user_id = st.text_input("User ID")
+    if st.button("Register / Login"):
+        response = requests.post("http://127.0.0.1:5000/register", json={"user_id": user_id})
+        if response.status_code == 201:
+            keys = response.json()
+            st.write("### Your Keys")
+            st.write(f"**Public Key:** {keys['public_key']}")
+            st.write(f"**Private Key:** {keys['private_key']}")
+        else:
+            st.error("Login failed. Please try again.")
+
+elif selected == "Transaction":
+    st.title("Transaction")
+    st.subheader("Send Transaction")
+    from_user_id = st.text_input("From User ID")
+    to_user_id = st.text_input("To User ID")
+    amount = st.number_input("Amount", min_value=0.01, step=0.01)
+    if st.button("Send Transaction"):
+        response = requests.post("http://127.0.0.1:5000/send_transaction", json={"from_user_id": from_user_id, "to_user_id": to_user_id, "amount": amount})
+        if response.status_code == 200:
+            st.success("Transaction successful!")
+            st.write("Transaction ID:", response.json()["transaction_id"])
+            st.write("Signature:", response.json()["signature"])
+        else:
+            st.error("Transaction failed. Please try again.")
+
+elif selected == "Transaction History":
+    st.title("Transaction History")
+    if st.button("Show Transactions"):
+        response = requests.get("http://127.0.0.1:5000/transactions")
+        transactions = response.json()
+        if transactions:
+            pyg.walk(transactions)
+
+# Footer
+st.markdown(
+    """
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+    <div class="footer">
+        Developed by Rishi Gupta and Akarshan Nagpal | 
+        <a href="https://github.com/yourgithub" style="color: white;">Your GitHub</a> | 
+        <a href="https://github.com/teammategithub" style="color: white;">Teammate's GitHub</a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
