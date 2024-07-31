@@ -1,7 +1,9 @@
+
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit_shadcn_ui as ui
 import requests
+import json
 import pygwalker as pyg
 
 # Initialize Streamlit app
@@ -69,17 +71,21 @@ if selected == "Home":
         2. Use your keys to initiate and track transactions.
         3. View your transaction history.
     """)
+
 elif selected == "Login":
     st.title("Login")
     st.subheader("First-time users will receive their public and private keys upon login.")
     user_id = st.text_input("User ID")
     if st.button("Register / Login"):
-        response = requests.post("http://127.0.0.1:5000/register", json={"user_id": user_id})
-        if response.status_code == 201:
+        response = requests.post("http://127.0.0.1:5000/login", json={"user_id": user_id})
+        if response.status_code == 200:
             keys = response.json()
             st.write("### Your Keys")
-            st.write(f"**Public Key:** {keys['public_key']}")
-            st.write(f"**Private Key:** {keys['private_key']}")
+            cols = st.columns(2)
+            with cols[0]:
+                ui.metric_card(title="Public Key", content=keys['public_key'], description="Your ECC Public Key", key="pub_key_card")
+            with cols[1]:
+                ui.metric_card(title="Private Key", content=keys['private_key'], description="Your ECC Private Key", key="priv_key_card")
         else:
             st.error("Login failed. Please try again.")
 
@@ -87,24 +93,34 @@ elif selected == "Transaction":
     st.title("Transaction")
     st.subheader("Send Transaction")
     from_user_id = st.text_input("From User ID")
+    private_key = st.text_input("Private Key", type="password")
     to_user_id = st.text_input("To User ID")
-    amount = st.number_input("Amount", min_value=0.01, step=0.01)
-    if st.button("Send Transaction"):
-        response = requests.post("http://127.0.0.1:5000/send_transaction", json={"from_user_id": from_user_id, "to_user_id": to_user_id, "amount": amount})
+    amount = st.text_input("Amount")
+
+    if st.button("Send"):
+        data = {
+            'from_user_id': from_user_id,
+            'private_key': private_key,
+            'to_user_id': to_user_id,
+            'amount': amount
+        }
+        response = requests.post("http://127.0.0.1:5000/send_transaction", json=data)
         if response.status_code == 200:
-            st.success("Transaction successful!")
-            st.write("Transaction ID:", response.json()["transaction_id"])
-            st.write("Signature:", response.json()["signature"])
+            result = response.json()
+            st.success("Transaction successful")
+            st.write(f"**Signature:** {result['signature']}")
         else:
-            st.error("Transaction failed. Please try again.")
+            st.error("Transaction failed")
 
 elif selected == "Transaction History":
     st.title("Transaction History")
     if st.button("Show Transactions"):
         response = requests.get("http://127.0.0.1:5000/transactions")
-        transactions = response.json()
-        if transactions:
+        if response.status_code == 200:
+            transactions = response.json()
             pyg.walk(transactions)
+        else:
+            st.error("Failed to retrieve transactions")
 
 # Footer
 st.markdown(
@@ -115,16 +131,16 @@ st.markdown(
             left: 0;
             bottom: 0;
             width: 100%;
-            background-color: #333;
-            color: white;
+            background-color: #ffffff;
+            color: black;
             text-align: center;
             padding: 10px;
         }
     </style>
     <div class="footer">
         Developed by Rishi Gupta and Akarshan Nagpal | 
-        <a href="https://github.com/yourgithub" style="color: white;">Your GitHub</a> | 
-        <a href="https://github.com/teammategithub" style="color: white;">Teammate's GitHub</a>
+        <a href="https://github.com/yourgithub" style="color: black;">Your GitHub</a> | 
+        <a href="https://github.com/teammategithub" style="color: black;">Teammate's GitHub</a>
     </div>
     """,
     unsafe_allow_html=True
