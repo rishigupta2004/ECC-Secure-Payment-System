@@ -1,4 +1,3 @@
-
 import streamlit as st
 from streamlit_option_menu import option_menu
 import streamlit_shadcn_ui as ui
@@ -6,6 +5,7 @@ import requests
 import json
 import pygwalker as pyg
 from PIL import Image
+import pandas as pd
 
 # Initialize Streamlit app
 st.set_page_config(page_title="ECC Secure Payment System", page_icon="🔒", layout="wide", initial_sidebar_state="expanded")
@@ -25,6 +25,7 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "#444"},
         }
     )
+
 # Define a function to display the logos
 def display_logo():
     try:
@@ -110,7 +111,13 @@ elif selected == "Transaction History":
         response = requests.get("http://127.0.0.1:5000/transactions")
         if response.status_code == 200:
             transactions = response.json()
-            pyg.walk(transactions)
+            if transactions:  # Check if transactions list is not empty
+                # Convert transactions list to DataFrame
+                transactions_df = pd.DataFrame(transactions)
+                # Display transactions with pygwalker
+                pyg.walk(transactions_df)
+            else:
+                st.info("No transactions available.")
         else:
             st.error("Failed to retrieve transactions")
 
