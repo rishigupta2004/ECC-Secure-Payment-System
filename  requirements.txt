@@ -1,0 +1,13 @@
+streamlit
+streamlit_option_menu
+streamlit_shadcn_ui
+requests
+json
+pygwalker
+PIL
+pandas
+flask
+logging
+tinydb
+hashlib
+ecdsa
