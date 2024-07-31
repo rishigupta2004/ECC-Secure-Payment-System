@@ -19,7 +19,7 @@ with st.sidebar:
         menu_icon="list",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#333"},
+            "container": {"background-color": "#333"},
             "icon": {"color": "white"},
             "nav-link": {"font-size": "16px", "text-align": "left", "margin": "0px", "--hover-color": "#444"},
             "nav-link-selected": {"background-color": "#444"},
@@ -33,7 +33,7 @@ def display_logo():
         logo2 = Image.open("/Users/rishigupta/Documents/IITG_Project/Prototype_1/images/logo-e78ff0ab.webp")
 
         # Display the images side by side
-        col1, col2, col3 = st.columns([0.20, 0.1, 1])
+        col1, col2, col3 = st.columns([0.15, 0.1, 1])
         col1.image(logo1, width=200, caption="")
         col3.image(logo2, width=200, caption="")
     except Exception as e:
