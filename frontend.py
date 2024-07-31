@@ -5,6 +5,7 @@ import streamlit_shadcn_ui as ui
 import requests
 import json
 import pygwalker as pyg
+from PIL import Image
 
 # Initialize Streamlit app
 st.set_page_config(page_title="ECC Secure Payment System", page_icon="🔒", layout="wide", initial_sidebar_state="expanded")
@@ -24,28 +25,19 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "#444"},
         }
     )
-
-# Define a function to display the logo
+# Define a function to display the logos
 def display_logo():
-    st.markdown(
-        """
-        <style>
-        .logo-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo-container img {
-            width: 150px;
-            height: auto;
-        }
-        </style>
-        <div class="logo-container">
-            <img src="https://your-logo-url.com/logo.png" alt="Logo">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    try:
+        # Load the images
+        logo1 = Image.open("/Users/rishigupta/Documents/IITG_Project/Prototype_1/images/IITG_White.png")
+        logo2 = Image.open("/Users/rishigupta/Documents/IITG_Project/Prototype_1/images/logo-e78ff0ab.webp")
+
+        # Display the images side by side
+        col1, col2, col3 = st.columns([0.20, 0.1, 1])
+        col1.image(logo1, width=200, caption="")
+        col3.image(logo2, width=200, caption="")
+    except Exception as e:
+        st.error(f"Error loading images: {e}")
 
 # Display the logo at the top of each page
 display_logo()
