@@ -1,28 +1,51 @@
-from web3 import Web3
 import json
-from db_operations import create_connection, insert_payment
 
-infura_url = "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID"
-web3 = Web3(Web3.HTTPProvider(infura_url))
-database = "payments.db"
+def load_database():
+    with open('database.json', 'r') as db_file:
+        return json.load(db_file)
 
-def generate_wallet():
-    account = web3.eth.account.create()
-    return {
-        'address': account.address,
-        'private_key': account.private_key.hex()
-    }
+def save_database(database):
+    with open('database.json', 'w') as db_file:
+        json.dump(database, db_file, indent=4)
 
-def send_transaction(from_address, private_key, to_address, amount):
-    conn = create_connection(database)
-    tx = {
-        'nonce': web3.eth.getTransactionCount(from_address),
-        'to': to_address,
-        'value': web3.toWei(amount, 'ether'),
-        'gas': 2000000,
-        'gasPrice': web3.toWei('50', 'gwei'),
-    }
-    signed_tx = web3.eth.account.sign_transaction(tx, private_key=private_key)
-    tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    insert_payment(conn, (from_address, to_address, amount, tx_hash.hex()))
-    return tx_hash.hex()
+def perform_transaction(from_user, private_key, to_user, amount):
+    database = load_database()
+    
+    # Debugging print statements
+    print(f"From User: {from_user}")
+    print(f"Private Key: {private_key}")
+    print(f"To User: {to_user}")
+    print(f"Amount: {amount}")
+
+    if from_user not in database:
+        return "Transaction failed: Sender does not exist."
+
+    if to_user not in database:
+        return "Transaction failed: Receiver does not exist."
+
+    sender = database[from_user]
+    receiver = database[to_user]
+
+    # Validate private key (for simplicity, assuming it matches exactly)
+    if sender['private_key'] != private_key:
+        return "Transaction failed: Invalid private key."
+
+    # Check if sender has enough balance
+    if sender['balance'] < amount:
+        return "Transaction failed: Insufficient funds."
+
+    # Perform the transaction
+    sender['balance'] -= amount
+    receiver['balance'] += amount
+
+    save_database(database)
+    return "Transaction successful."
+
+# Example usage
+if __name__ == "__main__":
+    from_user = "rishigupta.rg007@gmail.com"
+    private_key = "3873f720703f46c1b6553b9291480b4511be7a684a6348e44117f98c6ca429d4"
+    to_user = "akarshannagpal@gmail.com"
+    amount = 10000
+    result = perform_transaction(from_user, private_key, to_user, amount)
+    print(result)

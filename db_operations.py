@@ -1,6 +1,10 @@
 from tinydb import TinyDB, Query
 import hashlib
 from ecdsa import SigningKey, VerifyingKey, SECP256k1
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 db = TinyDB('database.json')
 
@@ -39,30 +43,44 @@ def login_user(user_id):
         return register_user(user_id)
 
 def send_transaction(from_user_id, to_user_id, amount, private_key_hex):
-    users_table = db.table('users')
-    from_user = users_table.get(Query().user_id == from_user_id)
-    to_user = users_table.get(Query().user_id == to_user_id)
-    
-    if not from_user or not to_user:
-        return {'error': 'User not found'}
+    try:
+        users_table = db.table('users')
+        from_user = users_table.get(Query().user_id == from_user_id)
+        to_user = users_table.get(Query().user_id == to_user_id)
+        
+        if not from_user:
+            logging.error(f"User {from_user_id} not found")
+            return {'error': 'Sender not found'}
+        if not to_user:
+            logging.error(f"User {to_user_id} not found")
+            return {'error': 'Receiver not found'}
 
-    transaction_details = f"{from_user_id} -> {to_user_id}: {amount}"
-    private_key = SigningKey.from_string(bytes.fromhex(private_key_hex), curve=SECP256k1)
-    signature = private_key.sign(transaction_details.encode())
+        # Validate private key
+        private_key = SigningKey.from_string(bytes.fromhex(private_key_hex), curve=SECP256k1)
+        if private_key.to_string().hex() != from_user['private_key']:
+            logging.error("Invalid private key")
+            return {'error': 'Invalid private key'}
 
-    transactions_table = db.table('transactions')
-    transactions_table.insert({
-        'from_user_id': from_user_id,
-        'to_user_id': to_user_id,
-        'amount': amount,
-        'signature': signature.hex(),
-        'transaction_details': transaction_details
-    })
-    
-    return {
-        'message': 'Transaction successful',
-        'signature': signature.hex()
-    }
+        transaction_details = f"{from_user_id} -> {to_user_id}: {amount}"
+        signature = private_key.sign(transaction_details.encode())
+
+        transactions_table = db.table('transactions')
+        transactions_table.insert({
+            'from_user_id': from_user_id,
+            'to_user_id': to_user_id,
+            'amount': amount,
+            'signature': signature.hex(),
+            'transaction_details': transaction_details
+        })
+        
+        logging.info("Transaction successful")
+        return {
+            'message': 'Transaction successful',
+            'signature': signature.hex()
+        }
+    except Exception as e:
+        logging.error(f"An error occurred during the transaction: {e}")
+        return {"error": str(e)}
 
 def get_transactions():
     transactions_table = db.table('transactions')
