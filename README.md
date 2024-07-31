@@ -13,6 +13,6 @@ How to Use
 Navigate to the Login page to register or log in.
 Use your keys to initiate and track transactions.
 View your transaction history
-<<<<<<<<<<
+
 >>>>>>>>>>
 
