@@ -138,8 +138,8 @@ st.markdown(
     </style>
     <div class="footer">
         Developed by Rishi Gupta and Akarshan Nagpal | 
-        <a href="https://github.com/yourgithub" style="color: black;">Your GitHub</a> | 
-        <a href="https://github.com/teammategithub" style="color: black;">Teammate's GitHub</a>
+        <a href="https://github.com/rishigupta2004" style="color: black;">Your GitHub</a> | 
+        <a href="https://github.com/akarshann" style="color: black;">Teammate's GitHub</a>
     </div>
     """,
     unsafe_allow_html=True
