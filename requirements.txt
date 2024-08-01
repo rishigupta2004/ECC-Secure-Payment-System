@@ -2,7 +2,6 @@ streamlit == 1.36.0
 streamlit_option_menu
 streamlit_shadcn_ui
 requests
-json
 pygwalker
 PIL
 pandas
