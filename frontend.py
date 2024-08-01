@@ -3,7 +3,6 @@ from streamlit_option_menu import option_menu
 import streamlit_shadcn_ui as ui
 import requests
 import json
-import pygwalker as pyg
 from PIL import Image
 import pandas as pd
 
@@ -114,8 +113,8 @@ elif selected == "Transaction History":
             if transactions:  # Check if transactions list is not empty
                 # Convert transactions list to DataFrame
                 transactions_df = pd.DataFrame(transactions)
-                # Display transactions with pygwalker
-                pyg.walk(transactions_df)
+                # Display transactions in a simple table
+                st.dataframe(transactions_df)
             else:
                 st.info("No transactions available.")
         else:
